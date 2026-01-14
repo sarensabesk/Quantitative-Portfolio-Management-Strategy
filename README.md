@@ -1,188 +1,230 @@
-# Quantitative-Portfolio-Management-Strategy
+# Market Beat
+### A Practical Quantitative Portfolio Construction Engine
 
-A Python-based portfolio construction system that builds a **rules-compliant, diversified equity portfolio** using market data, statistical scoring, and risk controls.  
-The model is designed to reflect **practical portfolio management constraints**, not purely theoretical optimization.
+**Market Beat** is a Python-based quantitative investing project that builds a **diversified, rules-based equity portfolio** using real market data, statistical signals, and realistic portfolio constraints.
 
----
+Unlike purely academic optimizers, Market Beat is designed to reflect **how portfolio decisions are made in practice**: noisy data, liquidity limits, sector exposure rules, and position sizing constraints.
 
-## Project Summary
-
-This project constructs a **long-only equity portfolio (10–25 stocks)** under realistic investment constraints using historical market data.  
-It combines **data cleaning, factor-based scoring, risk-adjusted performance metrics, and diversification controls** to produce a final, investable portfolio.
-
-Key objectives:
-- Select fundamentally tradable equities (US & Canada)
-- Rank securities using multiple performance and risk signals
-- Enforce strict position and sector constraints
-- Convert model output into real-world allocations (CAD, shares)
+This project was built to demonstrate **end-to-end quantitative thinking** — from raw ticker ingestion to an investable portfolio with weights, capital allocations, and risk controls.
 
 ---
 
-## Portfolio Constraints
+## High-Level Overview
 
-The portfolio strictly enforces the following rules:
+Market Beat takes a universe of equity tickers and:
 
-- **Total capital:** CAD $1,000,000  
-- **Number of holdings:** 10–25 stocks  
-- **Maximum weight per stock:** 15%  
-- **Maximum weight per sector:** 40%  
-- **Long-only** (no leverage, no short selling)
-
-All constraints are programmatically checked and enforced.
-
----
-
-## Data Inputs
-
-### Required Input File
-**`Tickers_Example.csv`**
-- Single column of equity tickers
-- Mixed sector exposure required
-- Invalid, illiquid, or unsupported tickers are automatically removed
-
-### Market Data Source
-- Historical price and volume data retrieved via `yfinance`
-- Market benchmarks:
-  - S&P 500 (US)
-  - TSX Composite (Canada)
+1. Cleans and validates the input universe  
+2. Filters for tradability and liquidity  
+3. Computes risk, return, and momentum metrics  
+4. Scores and ranks securities using multiple signals  
+5. Constructs a diversified portfolio under strict constraints  
+6. Outputs final weights, allocations, and diagnostics  
 
 ---
 
-## Methodology Overview
+## What Market Beat Builds
 
-### 1. Ticker Cleaning & Validation
-- Removes whitespace, empty rows, duplicates, and malformed tickers
-- Filters to equities with valid market data
-- Stops execution if:
-  - Fewer than 10 valid tickers remain
-  - Insufficient sector diversity is detected
+- **Portfolio size:** 10–25 equities  
+- **Capital:** CAD $1,000,000  
+- **Universe:** U.S. & Canadian listed equities  
+- **Strategy type:** Long-only, rules-based  
+- **Objective:** Risk-adjusted return with diversification  
 
-📸 **Screenshot Placeholder**
-- Cleaned ticker list vs original CSV
+### Enforced Constraints
+- Maximum **15% per security**
+- Maximum **40% per sector**
+- Minimum sector diversity
+- Liquidity and data-quality requirements
 
----
-
-### 2. Liquidity Filtering
-Ensures all securities are realistically tradable:
-- Minimum trading frequency per month
-- Minimum average daily volume threshold
-
-📸 **Screenshot Placeholder**
-- Liquidity filter results
+All constraints are enforced programmatically.
 
 ---
 
-### 3. Metric Computation
-For each eligible security, the model computes:
-- Mean daily returns and volatility
-- Sharpe ratio (risk-adjusted return)
-- Beta vs blended market benchmark
-- Residual alpha and momentum
-- Liquidity stability
-- Market capitalization (converted to CAD)
-- Sector classification
+## How the Model Works (Conceptual)
+
+At a high level, Market Beat follows this pipeline:
+
+```
+Tickers → Cleaning → Liquidity Filter → Metric Computation
+       → Scoring → Ranking → Portfolio Construction → Output
+```
+
+Each stage is deliberately modular and transparent.
+
+---
+
+## How Returns & Scores Are Calculated
+
+### 1. Market Data
+- Daily OHLCV data via `yfinance`
+- Benchmarks:
+  - S&P 500 (U.S. market proxy)
+  - TSX Composite (Canadian market proxy)
+
+---
+
+### 2. Core Metrics
+For each stock, the model computes:
+
+- Mean daily return  
+- Volatility (standard deviation of returns)  
+- Sharpe ratio (risk-adjusted performance)  
+- Beta vs blended market benchmark  
+- Residual alpha and residual momentum  
+- Liquidity stability (volume & consistency)  
+- Market capitalization (converted to CAD)  
+- Sector classification  
 
 📸 **Screenshot Placeholder**
 - Metrics dataframe preview
 
 ---
 
-### 4. Factor Scoring
+### 3. Initial Scoring Logic
 Each stock receives an **Initial Score** based on:
+
 - Residual momentum (primary signal)
-- Sharpe ratio
-- Liquidity quality
+- Sharpe ratio (quality filter)
+- Liquidity score
 - Volatility penalty
 
 Scores are normalized to ensure comparability across securities.
 
 📸 **Screenshot Placeholder**
-- Top-ranked securities by Initial Score
+- Top securities by Initial Score
 
 ---
 
-### 5. Advanced Risk & Return Estimates
-The model enhances ranking using:
+### 4. Advanced Estimates
+To avoid relying on a single signal, Market Beat incorporates:
+
 - **CAPM expected return**
-- **Monte Carlo simulation** (1-year GBM projection)
-- **Diversification score** using average absolute covariance
+- **Monte Carlo simulation**
+  - 1-year geometric Brownian motion projection
+- **Diversification score**
+  - Based on average absolute covariance with other assets
 
 📸 **Screenshot Placeholder**
 - Monte Carlo expected returns
-- Covariance/diversification metrics
+- Covariance / diversification metrics
 
 ---
 
-### 6. Total Score & Ranking
-All normalized components are combined into a **Total Score**, producing a final ranked universe of securities.
+### 5. Final Ranking
+All normalized components are combined into a **Total Score**, producing a ranked universe used for portfolio construction.
 
 📸 **Screenshot Placeholder**
-- Final ranking by Total Score
+- Final ranking table
 
 ---
 
-### 7. Portfolio Construction
-- Selects a 10-stock core portfolio with sector caps
-- Converts Total Scores into portfolio weights
-- Applies:
-  - 15% single-stock cap
-  - 40% sector cap
-- Automatically redistributes excess weight
-- Expands the portfolio (up to 25 stocks) if required to maintain constraints
+## Portfolio Construction Logic
+
+1. Selects a 10-stock core portfolio  
+2. Converts Total Scores into portfolio weights  
+3. Applies position and sector caps  
+4. Redistributes excess weight automatically  
+5. Expands the portfolio (up to 25 stocks) if needed to preserve diversification  
+
+The final portfolio is **fully invested, constraint-compliant, and interpretable**.
 
 📸 **Screenshot Placeholder**
-- Final portfolio allocation table
-- Sector weight summary
+- Final portfolio table
+- Sector allocation summary
 
 ---
 
-## Outputs
+## Results Summary
 
-The program produces:
-- Ranked security universe with full metrics
-- Final portfolio with:
-  - Ticker
-  - Sector
-  - Total Score
-  - Portfolio weight
-  - CAD allocation
-  - Number of shares
-- Constraint verification summaries
+> _(Example — replace with your actual run)_
 
-All outputs are designed to be directly interpretable and submission-ready.
+- **Backtest period:** Oct 2024 – Sep 2025  
+- **Portfolio return:** +XX.X%  
+- **Benchmark return:** +XX.X%  
+- **Outperformance:** +X.X%  
+- **Annualized volatility:** XX.X%  
+- **Sharpe ratio:** X.XX  
+
+📸 **Screenshot Placeholder**
+- Portfolio performance summary
 
 ---
 
-## How to Run
+## Visualizations & Graphs
 
-1. Install dependencies:
+The project produces clear visual diagnostics, including:
+
+- Equity curve vs benchmark  
+- Sector weight breakdown  
+- Distribution of portfolio weights  
+- Monte Carlo return distribution  
+
+📸 **Screenshot Placeholder**
+- Performance graph
+- Sector allocation chart
+- Monte Carlo distribution
+
+---
+
+## How to Run the Project
+
+### Requirements
+Python 3.x with:
+- pandas
+- numpy
+- numpy-financial
+- yfinance
+- matplotlib
+
 ```bash
 pip install pandas numpy numpy-financial yfinance matplotlib
 ```
 
-2. Place `Tickers_Example.csv` in the project directory  
-3. Run the notebook or script from top to bottom  
-4. Review final portfolio outputs and constraint checks  
+### Launch Steps
+1. Place `Tickers_Example.csv` in the project directory  
+2. Run the notebook or script from top to bottom  
+3. Review console outputs, tables, and graphs  
 
 ---
 
-## Assumptions & Limitations
+## Exported Outputs
 
-- Relies on publicly available historical market data
-- Market regime changes are not explicitly modeled
-- FX conversion assumes stable CAD/USD rates when data is unavailable
-- Results are illustrative and not financial advice
+- Ranked universe with all metrics  
+- Final portfolio table:
+  - Ticker
+  - Sector
+  - Weight
+  - CAD allocation
+  - Share count
+- Constraint verification summaries  
+- Visual performance diagnostics  
+
+All outputs are designed to be recruiter- and reviewer-friendly.
 
 ---
 
-## Team Information
+## Why This Project Matters
 
-**Team XX**  
-(Add names and student IDs)
+Market Beat demonstrates:
+- Practical quantitative finance intuition  
+- Data cleaning and validation discipline  
+- Risk-aware portfolio construction  
+- Clear, explainable modeling decisions  
+- End-to-end ownership of a technical system  
+
+This project prioritizes **clarity and realism over buzzwords**.
+
+---
+
+## Credits
+
+**Author:** Saren Sabeskaran  
+**Tools:** Python, pandas, NumPy, yfinance  
+**Data Source:** Yahoo Finance  
 
 ---
 
 ## Disclaimer
 
-This project is for academic and educational purposes only.  
-It does not constitute investment advice or a recommendation to trade securities.
+This project is for educational and demonstration purposes only.  
+It does not constitute investment advice.

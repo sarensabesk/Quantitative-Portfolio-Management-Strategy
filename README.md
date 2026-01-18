@@ -75,27 +75,13 @@ Each stock receives a **Total Score** built from **four normalized components**,
 
 ## Explanation of the Model & Thought Process
 
-This section explains **why each part of the system exists** and how the logic flows through the code.
+This section explains **why each part of the system exists** and the reasoning behind the design choices.
 
-### Why Clean the Ticker Universe?
-Real-world data is messy. CSV files often contain formatting errors, duplicates, or invalid tickers. Cleaning the universe upfront prevents silent errors later and ensures the portfolio is built only from tradable assets.
-
-### Why Use Multiple Scoring Components?
-No single metric captures stock quality. Market Beat intentionally blends **risk-adjusted performance, theoretical expected return, simulated future outcomes, and diversification impact** so the final portfolio is balanced rather than overfit to one signal.
-
-### Why Normalize Scores?
-Each metric exists on a different scale (e.g., Sharpe vs returns vs covariance). Normalization ensures no single metric dominates simply due to magnitude rather than importance.
-
-### Why These Weights?
-- **Original Score (0.30):** Core stock quality and risk control  
-- **Monte Carlo (0.30):** Forward-looking, uncertainty-aware returns  
-- **CAPM (0.25):** Finance-theory anchor tied to systematic risk  
-- **Diversification (0.15):** Portfolio stability rather than raw return  
-
-The weights reflect a balance between empirical performance and theoretical grounding.
-
-### Why Enforce Hard Constraints?
-Unconstrained optimizers often produce portfolios that are impossible to trade. Enforcing caps on positions and sectors ensures the output portfolio is realistic, diversified, and deployable.
+- **Multi-factor scoring:** No single metric captures stock quality. Combining risk-adjusted performance, theoretical expected return, simulations, and diversification produces more stable portfolios.
+- **Normalization:** Metrics are normalized so no component dominates due to scale rather than importance.
+- **Hard constraints:** Position and sector caps prevent unrealistic allocations and improve robustness.
+- **Monte Carlo simulations:** Forward-looking simulations capture uncertainty beyond historical averages.
+- **Diversification scoring:** Penalizes highly correlated stocks to reduce drawdowns and volatility.
 
 ---
 
@@ -130,18 +116,33 @@ These files explicitly show **which stocks to buy and how much to allocate**.
 
 ---
 
-## Graphs & Visualizations
+## Graphs & Visual Diagnostics
 
-The project produces visual diagnostics using Matplotlib:
+### Portfolio Performance vs Benchmarks
+*(Cumulative performance of the optimized portfolio vs S&P 500 and TSX)*
 
-- Portfolio performance vs S&P 500 and TSX  
-- Final portfolio allocation by weight  
-- Weekly portfolio performance snapshot  
+![Portfolio Performance](docs/images/Graph.png)
 
-Suggested image locations:
-```
-docs/images/
-```
+---
+
+### Final Portfolio Allocation
+*(Final weight distribution of the 10-stock portfolio)*
+
+![Final Allocation](docs/images/Pie_Graph.png)
+
+---
+
+### Final Portfolio Output
+*(Console output showing selected stocks, sectors, weights, and capital allocation)*
+
+![Final Output](docs/images/Output.png)
+
+---
+
+### Cleaned & Validated Output
+*(Cleaned data after ticker validation and preprocessing)*
+
+![Cleaned Output](docs/images/Cleaned_Output.png)
 
 ---
 

@@ -174,9 +174,9 @@ pip install pandas numpy numpy-financial yfinance matplotlib
 
 ## Included Example Output (CSV)
 
-This repo also includes an example output file (**no screenshot**) so reviewers can quickly see the end result format:
+This repo also exports an outputs a csv file:
 
-- `Portfolio_Final.csv` — final 10-stock portfolio with weights and capital allocations
+- `Portfolio_Final.csv` — final 10-stock portfolio with weights and capital allocations, including all information and no rounding
 
 ---
 

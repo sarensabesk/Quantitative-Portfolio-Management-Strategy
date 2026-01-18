@@ -142,7 +142,7 @@ These files explicitly show **which stocks to buy and how much to allocate**.
 ### Cleaned & Validated Output
 *(Cleaned data after ticker validation and preprocessing)*
 
-![Cleaned Output](docs/images/Cleaned_Output.png)
+![Cleaned Output](docs/images/Cleaned_Ouput.png)
 
 ---
 
@@ -163,12 +163,20 @@ pip install pandas numpy numpy-financial yfinance matplotlib
 
 ## How to Run
 
-1. Place your ticker CSV in the project directory  
+1. Place your ticker CSV in the project directory (example: `Tickers_Example.csv`)  
 2. Run the script or notebook  
 3. Review:
    - CSV outputs  
    - Portfolio selection  
    - Graphs and diagnostics  
+
+---
+
+## Included Example Output (CSV)
+
+This repo also includes an example output file (**no screenshot**) so reviewers can quickly see the end result format:
+
+- `Portfolio_Final.csv` — final 10-stock portfolio with weights and capital allocations
 
 ---
 

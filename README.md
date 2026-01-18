@@ -1,226 +1,180 @@
 # Market Beat
-### A Practical Quantitative Portfolio Construction Engine
+### Quantitative Portfolio Optimization Engine
 
-**Market Beat** is a Python-based quantitative investing project that builds a **diversified, rules-based equity portfolio** using real market data, statistical signals, and realistic portfolio constraints.
+**Market Beat** is a Python-based quantitative investing project that constructs a **10-stock, rules-based equity portfolio** using real market data, multi-factor scoring, and realistic trading constraints.
 
-Unlike purely academic optimizers, Market Beat is designed to reflect **how portfolio decisions are made in practice**: noisy data, liquidity limits, sector exposure rules, and position sizing constraints.
-
-This project was built to demonstrate **end-to-end quantitative thinking** — from raw ticker ingestion to an investable portfolio with weights, capital allocations, and risk controls.
+The project is designed to mirror **practical portfolio construction**, not theoretical optimization. It accounts for liquidity, position limits, sector exposure caps, transaction costs, and diversification effects to produce **fully investable portfolios**.
 
 ---
 
-## High-Level Overview
+## What Market Beat Does
 
-Market Beat takes a universe of equity tickers and:
+Given a CSV of equity tickers, Market Beat:
 
-1. Cleans and validates the input universe  
+1. Cleans and validates the ticker universe  
 2. Filters for tradability and liquidity  
-3. Computes risk, return, and momentum metrics  
-4. Scores and ranks securities using multiple signals  
-5. Constructs a diversified portfolio under strict constraints  
-6. Outputs final weights, allocations, and diagnostics  
+3. Computes risk, return, and diversification metrics  
+4. Scores stocks using a weighted multi-factor model  
+5. Selects **exactly 10 stocks** for the portfolio  
+6. Enforces realistic portfolio constraints  
+7. Outputs portfolio recommendations, CSV files, and visual diagnostics  
 
 ---
 
-## What Market Beat Builds
+## Design Focus: Realistic Constraints & Risk Awareness
 
-- **Portfolio size:** 10–25 equities  
+Market Beat prioritizes **real-world feasibility and risk control** rather than purely maximizing returns.
+
+Key assumptions:
+- Long-only portfolio  
+- Fixed capital budget (CAD $1,000,000)  
+- Transaction costs included  
+- Position and sector limits enforced programmatically  
+- Preference for stable, risk-adjusted performance  
+
+---
+
+## Portfolio Rules (Strictly Enforced)
+
+- **Portfolio size:** **10 stocks (fixed)**  
 - **Capital:** CAD $1,000,000  
-- **Universe:** U.S. & Canadian listed equities  
-- **Strategy type:** Long-only, rules-based  
-- **Objective:** Risk-adjusted return with diversification  
-
-### Enforced Constraints
-- Maximum **15% per security**
-- Maximum **40% per sector**
-- Minimum sector diversity
-- Liquidity and data-quality requirements
-
-All constraints are enforced programmatically.
+- **Max position size:** 15% per stock  
+- **Max sector exposure:** 40% per sector  
+- **Sector diversity during selection:** max 4 stocks per sector  
+- **Fully invested:** excess weight is redistributed automatically  
 
 ---
 
-## How the Model Works (Conceptual)
+## Ticker Cleaning & Validation
 
-At a high level, Market Beat follows this pipeline:
+Before any scoring occurs, Market Beat performs strict input validation:
 
-```
-Tickers → Cleaning → Liquidity Filter → Metric Computation
-       → Scoring → Ranking → Portfolio Construction → Output
-```
+- Removes duplicates, whitespace issues, invalid symbols, and junk rows  
+- Rejects malformed or non-tradable tickers  
+- Filters to U.S. and Canadian equities only  
+- Ensures sufficient universe size and sector diversity  
 
-Each stage is deliberately modular and transparent.
-
----
-
-## How Returns & Scores Are Calculated
-
-### 1. Market Data
-- Daily OHLCV data via `yfinance`
-- Benchmarks:
-  - S&P 500 (U.S. market proxy)
-  - TSX Composite (Canadian market proxy)
+If the input universe cannot support a diversified 10-stock portfolio, execution stops with a clear error.
 
 ---
 
-### 2. Core Metrics
-For each stock, the model computes:
+## Stock Scoring System
 
-- Mean daily return  
-- Volatility (standard deviation of returns)  
-- Sharpe ratio (risk-adjusted performance)  
-- Beta vs blended market benchmark  
-- Residual alpha and residual momentum  
-- Liquidity stability (volume & consistency)  
-- Market capitalization (converted to CAD)  
-- Sector classification  
+Each stock receives a **Total Score** built from **four normalized components**, each capturing a different dimension of portfolio quality.
 
-📸 **Screenshot Placeholder**
-- Metrics dataframe preview
+### Final Score Weights
+
+| Component | Weight |
+|--------|-------:|
+| Original Score (risk & quality core) | 0.30 |
+| Monte Carlo expected return | 0.30 |
+| CAPM expected return | 0.25 |
+| Diversification score | 0.15 |
 
 ---
 
-### 3. Initial Scoring Logic
-Each stock receives an **Initial Score** based on:
+## Explanation of the Model & Thought Process
 
-- Residual momentum (primary signal)
-- Sharpe ratio (quality filter)
-- Liquidity score
-- Volatility penalty
+This section explains **why each part of the system exists** and how the logic flows through the code.
 
-Scores are normalized to ensure comparability across securities.
+### Why Clean the Ticker Universe?
+Real-world data is messy. CSV files often contain formatting errors, duplicates, or invalid tickers. Cleaning the universe upfront prevents silent errors later and ensures the portfolio is built only from tradable assets.
 
-📸 **Screenshot Placeholder**
-- Top securities by Initial Score
+### Why Use Multiple Scoring Components?
+No single metric captures stock quality. Market Beat intentionally blends **risk-adjusted performance, theoretical expected return, simulated future outcomes, and diversification impact** so the final portfolio is balanced rather than overfit to one signal.
 
----
+### Why Normalize Scores?
+Each metric exists on a different scale (e.g., Sharpe vs returns vs covariance). Normalization ensures no single metric dominates simply due to magnitude rather than importance.
 
-### 4. Advanced Estimates
-To avoid relying on a single signal, Market Beat incorporates:
+### Why These Weights?
+- **Original Score (0.30):** Core stock quality and risk control  
+- **Monte Carlo (0.30):** Forward-looking, uncertainty-aware returns  
+- **CAPM (0.25):** Finance-theory anchor tied to systematic risk  
+- **Diversification (0.15):** Portfolio stability rather than raw return  
 
-- **CAPM expected return**
-- **Monte Carlo simulation**
-  - 1-year geometric Brownian motion projection
-- **Diversification score**
-  - Based on average absolute covariance with other assets
+The weights reflect a balance between empirical performance and theoretical grounding.
 
-📸 **Screenshot Placeholder**
-- Monte Carlo expected returns
-- Covariance / diversification metrics
-
----
-
-### 5. Final Ranking
-All normalized components are combined into a **Total Score**, producing a ranked universe used for portfolio construction.
-
-📸 **Screenshot Placeholder**
-- Final ranking table
+### Why Enforce Hard Constraints?
+Unconstrained optimizers often produce portfolios that are impossible to trade. Enforcing caps on positions and sectors ensures the output portfolio is realistic, diversified, and deployable.
 
 ---
 
 ## Portfolio Construction Logic
 
-1. Selects a 10-stock core portfolio  
-2. Converts Total Scores into portfolio weights  
-3. Applies position and sector caps  
-4. Redistributes excess weight automatically  
-5. Expands the portfolio (up to 25 stocks) if needed to preserve diversification  
+1. Rank all stocks by Total Score  
+2. Select top candidates while enforcing sector limits  
+3. Convert scores into proportional portfolio weights  
+4. Enforce the 15% per-stock cap via iterative redistribution  
+5. Enforce the 40% sector cap  
+6. Apply transaction costs and ensure the portfolio fits within budget  
 
-The final portfolio is **fully invested, constraint-compliant, and interpretable**.
-
-📸 **Screenshot Placeholder**
-- Final portfolio table
-- Sector allocation summary
+The final portfolio is **fully investable, constraint-compliant, and interpretable**.
 
 ---
 
-## Results Summary
+## Outputs
 
-> _(Example — replace with your actual run)_
+Market Beat generates **both data files and visual diagnostics**.
 
-- **Backtest period:** Oct 2024 – Sep 2025  
-- **Portfolio return:** +XX.X%  
-- **Benchmark return:** +XX.X%  
-- **Outperformance:** +X.X%  
-- **Annualized volatility:** XX.X%  
-- **Sharpe ratio:** X.XX  
+### CSV Outputs
+- **Ranked Universe CSV**
+  - All computed metrics and scores  
+  - Ranking of all eligible stocks  
+- **Final Portfolio CSV**
+  - 10 selected stocks  
+  - Final weights  
+  - CAD allocations  
+  - Share counts  
 
-📸 **Screenshot Placeholder**
-- Portfolio performance summary
-
----
-
-## Visualizations & Graphs
-
-The project produces clear visual diagnostics, including:
-
-- Equity curve vs benchmark  
-- Sector weight breakdown  
-- Distribution of portfolio weights  
-- Monte Carlo return distribution  
-
-📸 **Screenshot Placeholder**
-- Performance graph
-- Sector allocation chart
-- Monte Carlo distribution
+These files explicitly show **which stocks to buy and how much to allocate**.
 
 ---
 
-## How to Run the Project
+## Graphs & Visualizations
 
-### Requirements
-Python 3.x with:
-- pandas
-- numpy
-- numpy-financial
-- yfinance
-- matplotlib
+The project produces visual diagnostics using Matplotlib:
+
+- Portfolio performance vs S&P 500 and TSX  
+- Final portfolio allocation by weight  
+- Weekly portfolio performance snapshot  
+
+Suggested image locations:
+```
+docs/images/
+```
+
+---
+
+## Requirements
+
+- Python 3.x  
+- pandas  
+- numpy  
+- numpy-financial  
+- yfinance  
+- matplotlib  
 
 ```bash
 pip install pandas numpy numpy-financial yfinance matplotlib
 ```
 
-### Launch Steps
-1. Place `Tickers_Example.csv` in the project directory  
-2. Run the notebook or script from top to bottom  
-3. Review console outputs, tables, and graphs  
+---
+
+## How to Run
+
+1. Place your ticker CSV in the project directory  
+2. Run the script or notebook  
+3. Review:
+   - CSV outputs  
+   - Portfolio selection  
+   - Graphs and diagnostics  
 
 ---
 
-## Exported Outputs
+## Authors
 
-- Ranked universe with all metrics  
-- Final portfolio table:
-  - Ticker
-  - Sector
-  - Weight
-  - CAD allocation
-  - Share count
-- Constraint verification summaries  
-- Visual performance diagnostics  
-
-All outputs are designed to be recruiter- and reviewer-friendly.
-
----
-
-## Why This Project Matters
-
-Market Beat demonstrates:
-- Practical quantitative finance intuition  
-- Data cleaning and validation discipline  
-- Risk-aware portfolio construction  
-- Clear, explainable modeling decisions  
-- End-to-end ownership of a technical system  
-
-This project prioritizes **clarity and realism over buzzwords**.
-
----
-
-## Credits
-
-**Author:** Saren Sabeskaran  
-**Tools:** Python, pandas, NumPy, yfinance  
-**Data Source:** Yahoo Finance  
+**Saren Sabeskaran**  
+**Joey Xu**
 
 ---
 

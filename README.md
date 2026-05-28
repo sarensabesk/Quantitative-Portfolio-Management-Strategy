@@ -183,7 +183,7 @@ This repo also exports an outputs a csv file:
 ## Authors
 
 **Saren Sabeskaran**  
-**Joey Xu**
+**Joey Xu**  
 **Muhammad Ali Mamdani**
 
 ---
